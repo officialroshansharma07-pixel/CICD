@@ -18,6 +18,9 @@ jobs:
   build-and-test:
     runs-on: ubuntu-latest
 
+    environment:
+      name: github-pages
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -45,6 +48,18 @@ jobs:
             publicKey: '${PUBLIC_KEY}'
           };
           EOF
+
+      - name: Check secret exists
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          PUBLIC_KEY: ${{ secrets.PUBLIC_KEY }}
+        run: |
+          if [ -z "$PUBLIC_KEY" ]; then
+            echo "PUBLIC_KEY is NOT available"
+            exit 1
+          else
+            echo "PUBLIC_KEY is available"
+          fi
 
       - name: Build application
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
