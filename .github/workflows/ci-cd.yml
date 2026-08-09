@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+
   pull_request:
     branches:
       - main
@@ -33,20 +34,42 @@ jobs:
       - name: Run tests
         run: npm test -- --watch=false --browsers=ChromeHeadless
 
+      # Create production environment using GitHub Secret
+      - name: Create production environment
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          PUBLIC_KEY: ${{ secrets.PUBLIC_KEY }}
+        run: |
+          cat > src/environments/environment.prod.ts <<EOF
+          export const environment = {
+            production: true,
+            publicKey: '${PUBLIC_KEY}'
+          };
+          EOF
+
+      # Build Angular application
       - name: Build application
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: npm run build -- --base-href /CICD/
 
+      # Configure GitHub Pages
       - name: Setup Pages
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: actions/configure-pages@v5
 
+      # Upload Angular build
       - name: Upload Pages artifact
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: actions/upload-pages-artifact@v3
         with:
           path: ./dist/test1
 
   deploy:
     needs: build-and-test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
     runs-on: ubuntu-latest
+
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
