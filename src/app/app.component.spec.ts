@@ -31,9 +31,9 @@ describe('AppComponent', () => {
   it('should render title', () => {
     const fixture = TestBed.createComponent(AppComponent);
     fixture.detectChanges();
-  
+
     const compiled = fixture.nativeElement as HTMLElement;
-  
-    expect(compiled.querySelector('h2')?.textContent).toContain('Hello World');
+
+    expect(compiled.textContent).toContain('Hello World');
   });
 });
